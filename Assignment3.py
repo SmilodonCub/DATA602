@@ -26,7 +26,7 @@ Assignment #3
 import csv, json, math, pandas as pd, requests, unittest, uuid
 
 # ------ Create your classes here \/ \/ \/ ------
-# %%
+
 # Box class declaration below here
  
 class Box:
@@ -70,14 +70,51 @@ class Box:
         return Box( self.length, self.width )
     def get_hypot( self ):
         return math.sqrt( self.width**2 + self.length**2 )
-# %%
+
 # MangoDB class declaration below here
 
 class MangoDB:
     """
     Dictionary of Dictionaries: way better than MongoDB
     """
-
+    def __init__( self ):
+        self.database = { 'default' : {
+            'version':1.0,
+            'db':'mangodb',
+            'uuid':str( uuid.uuid4() )
+            } }
+    def add_collection( self, collection_name ):
+        self.database[ collection_name ] = {}
+    def update_collection( self, collection_name, updates ):
+        #allows the caller to insert new items into a collection
+        self.database[ collection_name ].update( updates )
+    def remove_collection( self, collection_name ): 
+        #allows caller to delete a specific collection by name and its associated data
+        self.database.pop( collection_name )
+    def list_collections( self ): 
+        #displays a list of all the collections
+        print( self.database.keys() )
+    def get_collection_size( self,collection_name ): 
+        #finds the number of key/value pairs in a given collection
+        contents = self.database[ collection_name ]
+        print( len( contents ) )
+        return len( contents )
+    def to_json( self,collection_name ): 
+        #that converts the collection to a JSON string
+        contents_json = json.dumps( self.database[ collection_name ] )
+        return contents_json
+    def wipe( self ): 
+        #that cleans out the db and resets it with just a default collection
+        self.database = { 'default' : {
+            'version':1.0,
+            'db':'mangodb',
+            'uuid':str( uuid.uuid4() )
+            } }
+    def get_collection_names( self ): 
+        #that returns a list of collection names
+        return self.database.keys()
+        
+        
 # ------ Create your classes here /\ /\ /\ ------
 
 
@@ -153,7 +190,7 @@ def exercise01():
     return box1, box2, box3
 
     # ------ Place code above here /\ /\ /\ ------
-# %%
+
 
 def exercise02():
     '''
@@ -232,6 +269,17 @@ def exercise02():
     test_scores = [99,89,88,75,66,92,75,94,88,87,88,68,52]
 
     # ------ Place code below here \/ \/ \/ ------
+    
+    a_mango = MangoDB()
+    a_mango.add_collection( 'testscores' )
+    a_mango.update_collection( 'testscores', 
+                              {1:99,2:89,3:88,4:75,5:66,6:92,7:75,8:94,9:88,
+                               10:87,11:88,12:68,13:52})
+    a_mango.get_collection_size('testscores' )
+    a_mango.list_collections()
+    a_mango.database[ 'default' ][ 'uuid' ]
+    a_mango.wipe()
+    a_mango.database[ 'default' ][ 'uuid' ]
 
     # ------ Place code above here /\ /\ /\ ------
 
@@ -250,12 +298,17 @@ def exercise03():
     '''
 
     # ------ Place code below here \/ \/ \/ ------
+    from contextlib import closing
+    
     daturl = 'https://raw.githubusercontent.com/SmilodonCub/DATA602/master/avocado.csv'
-    with open( daturl, newline = '' ) as csv_file:
-        reader = csv.reader( csv_file )
+    
+    with closing(requests.get(daturl, stream=True)) as r:
+        f = (line.decode('utf-8') for line in r.iter_lines())
+        reader = csv.reader(f, delimiter=',', quotechar='"')
         for row in reader:
-            print( row )
-# %%
+            print(row)
+        
+
     # ------ Place code above here /\ /\ /\ ------
 
 class TestAssignment3(unittest.TestCase):
@@ -274,7 +327,7 @@ class TestAssignment3(unittest.TestCase):
         self.assertTrue(6 in b2.get_dim())
         self.assertTrue(8 in b2.get_dim())
         self.assertTrue(b2.combine(Box(1,1))==Box(7,9))
-# %%
+
     def test_exercise02(self):
         print('Testing exercise 2')
         exercise02()
@@ -298,6 +351,6 @@ class TestAssignment3(unittest.TestCase):
         print('Exercise 3 not tested')
         exercise03()
      
-# %%
+
 if __name__ == '__main__':
     unittest.main()
