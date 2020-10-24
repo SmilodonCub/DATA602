@@ -92,8 +92,7 @@ def exercise05():
 
     # ------ Place code below here \/ \/ \/ ------
     
-    first_name = 'Bonnie'
-    last_name = 'Cooper'
+    first_name, last_name = exercise04()
     name_type = type( first_name )
 
     # ------ Place code above here /\ /\ /\ ------
